@@ -1,0 +1,21 @@
+{
+  "name": "Ludo Race",
+  "genre": "board",
+  "dim": "3D",
+  "mode": "Turn-based",
+  "players": "2–4",
+  "hook": "Roll, race your tokens home, knock rivals back.",
+  "how": "Roll the die and hop a token that many squares round the board; a 6 brings a new token out of the yard. Land on a rival and it goes back to start. Get all four home first to win. Bots play the empty colors.",
+  "controls": "Click or tap to roll, then click or tap a glowing token (keys: Space to roll, 1–4 to pick)",
+  "uses": [
+    ["Host-run rules", "The host's browser rolls the die and checks every move; if it leaves, the next player takes over."],
+    ["Bots", "Bots play every empty color, so you can play alone, and a friend who joins takes over a bot's color mid-game."],
+    ["Live sync", "Everyone sees the same rolls and hops; the game carries on if someone reloads while another player stays."],
+    ["Leaderboard", "Most wins, shown after every game."]
+  ],
+  "ideas": [
+    "Add a boost square that jumps you 3 ahead",
+    "Make the tokens little racing cars",
+    "Let players chat with emoji during the game"
+  ]
+}
