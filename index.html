@@ -27,7 +27,7 @@
   #watch { font-size: 12px; font-weight: 600; opacity: .7; margin-top: 3px; }
   @media (orientation: portrait) { #status { top: calc(max(10px, env(safe-area-inset-top)) + 58px); } }
   #toast { position: fixed; top: 34%; left: 50%; transform: translateX(-50%); padding: 8px 16px; border-radius: 999px; background: #000b; font-weight: 700;
-           white-space: nowrap; pointer-events: none; transition: opacity .4s; }
+           width: max-content; max-width: calc(100vw - 64px); text-align: center; pointer-events: none; transition: opacity .4s; }
   #net { position: fixed; bottom: max(5px, env(safe-area-inset-bottom)); left: 0; right: 0; text-align: center; font-size: 12px; opacity: .7; pointer-events: none; }
   #roll { position: fixed; left: 50%; bottom: calc(max(8px, env(safe-area-inset-bottom)) + 78px); transform: translateX(-50%); min-width: 150px; min-height: 58px;
           border-radius: 18px; border: 0; background: #ffd166; color: #2a1d00; font: 800 20px system-ui, sans-serif; cursor: pointer; box-shadow: 0 6px 22px #0009;
@@ -43,6 +43,7 @@
   .card h3 { margin: 8px 0 4px; font-size: 13px; color: #ffd166; text-align: left; }
   .card ol { text-align: left; margin: 0 0 12px; padding-left: 24px; font-size: 14px; min-height: 24px; }
   .card li span { float: right; }
+  .card li.note { list-style: none; margin-left: -24px; opacity: .7; }
   .card .sq { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; }
   .card button { width: 100%; min-height: 48px; border-radius: 12px; border: 0; font: 700 16px system-ui, sans-serif; cursor: pointer; margin-top: 8px; }
   #again { background: #ffd166; color: #2a1d00; } #look { background: #ffffff1a; color: #fff; }
@@ -60,7 +61,7 @@
 <div id="over" hidden><div class="card">
   <h2 id="overTitle"></h2><p id="overWhy"></p>
   <ol id="standings"></ol>
-  <h3>Most wins</h3><ol id="board"><li>Loading…</li></ol>
+  <h3>Most wins</h3><ol id="board"><li class="note">Loading…</li></ol>
   <button id="again">Play again</button><button id="look">Look at the board</button>
 </div></div>
 <script type="module">
@@ -708,11 +709,11 @@ function showResults(g, me) {
   burst(worldOf([7.5, 7.5]), CONFIG.seatColors[g.win], 70, 5);
   sound(won ? "win" : "home");
   const list = $("board");
-  if (!board) { list.innerHTML = "<li>Leaderboards need a connection.</li>"; return; }
-  list.innerHTML = "<li>Loading…</li>";
+  if (!board) { list.innerHTML = "<li class='note'>Leaderboards need a connection.</li>"; return; }
+  list.innerHTML = "<li class='note'>Loading…</li>";
   (won ? board.submit(1, "inc").catch(() => null) : Promise.resolve()).then(() => board.top(10)).then(({ entries }) => {
-    list.innerHTML = entries.length ? entries.map((e) => `<li>${esc(e.username || "Player")}<span>${e.score}</span></li>`).join("") : "<li>No wins yet. Be the first.</li>";
-  }).catch(() => { list.innerHTML = "<li>Couldn't load the leaderboard.</li>"; });
+    list.innerHTML = entries.length ? entries.map((e) => `<li>${esc(e.username || "Player")}<span>${e.score}</span></li>`).join("") : "<li class='note'>No wins yet. Be the first.</li>";
+  }).catch(() => { list.innerHTML = "<li class='note'>Couldn't load the leaderboard.</li>"; });
 }
 function playAgain() { const g = game(); if (!g || g.phase !== "over") return; const msg = { g: g.id }; if (isHost()) hostAgain(net.sessionId, msg); else net.send("again", msg); }
 $("again").onclick = playAgain;
@@ -724,6 +725,7 @@ const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), floor = new THREE.
 /** On my roll: a tap anywhere rolls. On my move: the token tapped, or the one nearest the tap (its square or where it would land). */
 renderer.domElement.addEventListener("pointerdown", (e) => {
   e.preventDefault();
+  if (e.button > 0) return; // left button, touch or pen only
   const g = game(); if (!g) return;
   if (canRoll(g)) return sendRoll();
   const opts = myOptions(g); if (!opts.length) return;
@@ -739,8 +741,10 @@ renderer.domElement.addEventListener("pointerdown", (e) => {
 addEventListener("keydown", (e) => {
   const g = game(); if (!g) return;
   if (e.key === " " || e.key === "Enter") { e.preventDefault(); if (canRoll(g)) sendRoll(); else { const o = myOptions(g); if (o.length && new Set(o.map((x) => x.b)).size === 1) sendMove(o[0].k); } }
-  if (e.key >= "1" && e.key <= "4") sendMove(+e.key - 1);
+  const d = /^(Digit|Numpad)([1-4])$/.exec(e.code); // by code: Shift or Num Lock can't turn "1" into "!"
+  if (d && $("over").hidden) sendMove(+d[2] - 1);
 });
+renderer.domElement.addEventListener("contextmenu", (e) => e.preventDefault()); // right-click: no browser menu over the board
 document.addEventListener("touchmove", (e) => e.preventDefault(), { passive: false });
 
 /** The camera sits behind your color (your yard nearest you, bottom left) and backs off until the board fits. */
