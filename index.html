@@ -345,7 +345,7 @@ function hostRoll(from, m) {
 /** A "move" intent: token k of the mover's color, checked against the rules. */
 function hostMove(from, m) {
   const g = game();
-  if (!g || g.phase !== "move" || m.g !== g.id || m.t !== g.t || g.seats[g.turn] !== from) return;
+  if (!g || g.phase !== "move" || m.g !== g.id || m.t !== g.t || g.seats[g.turn] !== from || !Number.isInteger(m.k)) return;
   const p = g.tok[g.turn][m.k], mv = legalMoves(g).find((x) => x.a === p);
   if (mv) doMove(g, { ...mv, k: m.k });
 }
